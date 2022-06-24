@@ -1,0 +1,131 @@
+<div class="animated fadeIn">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <strong>Master</strong> User Level
+            <div class="pull-right" *ngIf="role=='administrator'">
+              <button type="button" (click)="modalAdd.show()" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus-square-o"></i> Add</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div *ngIf="success != null">
+              <div *ngFor="let alert of alertsDismiss">
+                <alert [type]="success===true ? 'info' : 'warning'" [dismissible]="dismissible" [dismissOnTimeout]="alert.timeout" (onClosed)="onClosedSuccess(alert)">
+                  <strong>{{ alert.msg }}</strong>
+                </alert>
+              </div>
+            </div>
+            <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger" class="row-border hover">
+              <thead>
+                <tr>
+                  <th width="10%">User Level Id</th>
+                  <th>User Level Name</th>
+                  <th>User Level Desc</th>
+                  <!-- <th>Name Code</th> -->
+                  <th width="13%">Option</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="levelList!=null">
+                <tr *ngFor="let lvl of levelList, let i=index">
+                  <!-- <td>{{ i }}</td> -->
+                  <td align="middle">{{ lvl.lvl_id }}</td>
+                  <td>{{ lvl.lvl_name }}</td>
+                  <td>{{ lvl.lvl_desc }}</td>
+                  <td *ngIf="role=='administrator'">
+                    <div class="col-sm-6 pull-left">
+                      <label class="switch switch-label switch-primary" title="Active/Deactive Account">
+                          <input type="checkbox" class="switch-input" [checked]="lvl.lvl_active==1" (click)="saveLvl($event.target.checked,lvl.lvl_id,lvl.lvl_name,lvl.lvl_desc,'switch')">
+                          <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                      </label>
+                    </div>
+                    <div class="col-sm-6 pull-right">
+                      <button type="button" (click)="editLvl(i)" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-pencil" title="Edit Account"></i></button>
+                    </div>
+                  </td>
+                  <td *ngIf="role!='administrator'">
+                    <button type="button" class="btn btn-sm btn-info" data-toggle="modal"><b>You Can't Edit Me :)</b></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <!-- <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+            <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div bsModal #modalAdd="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add User Level</h4>
+        <button type="button" class="close" (click)="modalAdd.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Level Name  : </label>
+            <div class="col-md-8">
+              <input #lvlNameAdd type="text" minlength="1" maxlength="100">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Level Desc  : </label>
+            <div class="col-md-8">
+              <input #lvlDescAdd type="text" minlength="1" maxlength="100">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalAdd.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="saveLvl(1,0,lvlNameAdd.value,lvlDescAdd.value,'insert')" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div bsModal #modalEdit="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Edit User Level</h4>
+        <button type="button" class="close" (click)="modalEdit.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Level Name  : </label>
+            <div class="col-md-8">
+                <input #lvlNameEdit type="text" minlength="1" maxlength="50" [value]="editSelected.lvl_name">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Level Desc  : </label>
+            <div class="col-md-8">
+              <input #lvlDescEdit type="text" minlength="1" maxlength="50" [value]="editSelected.lvl_desc">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalEdit.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="saveLvl(editSelected.lvl_active,editSelected.lvl_id,lvlNameEdit.value,lvlDescEdit.value,'update')" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

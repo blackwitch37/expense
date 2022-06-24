@@ -1,0 +1,45 @@
+// If you want to override variables do it here
+@import "variables";
+
+// Import styles
+@import "~@coreui/coreui/scss/coreui";
+
+// If you want to add something do it here
+@import "custom";
+
+@import "~@ng-select/ng-select/themes/material.theme.css";
+
+.container-fluid{
+    padding:20px 30px!important;
+}
+
+.dataTable tbody td.numberRight {
+    text-align: right;
+}
+
+ng-select > .ng-select-container{
+    min-height:0!important;
+}
+
+date-range-picker{
+    min-width: 37%;
+}
+date-range-picker, label[for=dateRangePicker-0]{
+    display: inline-block;
+    padding-top: 6px;
+}
+date-range-picker>.dateRangePicker-wrapper>.form-group{
+    display: flex;
+    // margin-left: 20% !important;
+    margin-right: 20% !important;
+}
+label[for=dateRangePicker-0]{
+    width: 100px;
+}
+.dateRangePicker-wrapper > .dateRangePicker, .open-left{
+    left:220px!important;
+    top: 50px!important;
+}
+#dateRangePicker-0{
+    width: auto;
+}

@@ -1,0 +1,45 @@
+<div class="animated fadeIn">
+    <div class="row">
+      <div class="col-md-12">
+        <div *ngIf="success != null">
+          <div *ngFor="let alert of alertsDismiss">
+            <alert [type]="success===true ? 'info' : 'warning'" [dismissible]="dismissible" [dismissOnTimeout]="alert.timeout" (onClosed)="onClosedSuccess(alert)">
+              <strong>{{ alert.msg }}</strong>
+            </alert>
+          </div>
+        </div>
+        <!-- <alert *ngIf="success || success == null" type="warning" dismissOnTimeout="2000" [dismissible]="dismissible" [dismissOnTimeout]="alertsDismiss[0].timeout"  (onClosed)="onClosedSuccess(alert)">
+          <strong>{{ alertsDismiss[0].msg }}</strong>
+        </alert> -->
+        <div class="card">
+          <div class="card-header">
+            <strong>Import</strong> Account
+          </div>
+          <div class="card-body">
+            <form enctype="multipart/form-data" class="form-horizontal">
+              <div class="form-group row">
+                <label class="col-md-3 col-form-label" for="file-input">Choose File  : </label>
+                <div class="col-md-9">
+                  <input type="file"
+                  id="files"
+                  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  (change)="handleFileImportAccount($event.target.files)" #files>
+                </div>
+              </div>
+              <!-- <div class="form-group row">
+                <label class="col-md-3 col-form-label" for="file-multiple-input">Multiple File input</label>
+                <div class="col-md-9">
+                  <input type="file" id="file-multiple-input" name="file-multiple-input" multiple>
+                </div>
+              </div> -->
+            </form>
+          </div>
+          <div class="card-footer">
+            <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+            <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button>
+          </div>
+        </div>
+      </div>
+    </div><!--/.row-->
+  </div>
+  

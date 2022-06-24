@@ -1,0 +1,187 @@
+<div class="animated fadeIn">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <strong>Master</strong> Account
+            <div class="pull-right">
+              <button type="button" (click)="modalUpload.show()" class="btn btn-sm btn-primary" data-toggle="modal"><i class="fa fa-upload"></i> Upload</button>
+              &nbsp;&nbsp;
+              <button type="button" (click)="modalAdd.show()" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus-square-o"></i> Add</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div *ngIf="success != null">
+              <div *ngFor="let alert of alertsDismiss">
+                <alert [type]="success===true ? 'info' : 'warning'" [dismissible]="dismissible" [dismissOnTimeout]="alert.timeout" (onClosed)="onClosedSuccess(alert)">
+                  <strong>{{ alert.msg }}</strong>
+                </alert>
+              </div>
+            </div>
+            <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger" class="row-border hover">
+              <thead>
+                <tr>
+                  <!-- <th>No</th> -->
+                  <th>Account Code</th>
+                  <th>Name Code</th>
+                  <th>Create Date</th>
+                  <th>Create By</th>
+                  <th width="13%">Option</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="accountList!=null">
+                <tr *ngFor="let acc of accountList, let i=index">
+                  <!-- <td>{{ i }}</td> -->
+                  <td>{{ acc.acc_id }}</td>
+                  <td>{{ acc.acc_desc }}</td>
+                  <td>{{ acc.acc_createDate }}</td>
+                  <td>{{ acc.acc_createUser }}</td>
+                  <td *ngIf="role=='administrator' || role=='manager'">
+                    <div class="col-sm-6 pull-left">
+                      <label class="switch switch-label switch-primary" title="Active/Deactive Account">
+                          <input type="checkbox" class="switch-input" [checked]="acc.acc_active==1" (click)="saveAcc($event.target.checked,acc.acc_id,acc.acc_desc,acc.loc_id)">
+                          <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                      </label>
+                    </div>
+                    <div class="col-sm-6 pull-right">
+                      <button type="button" (click)="editAcc(i)" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-pencil" title="Edit Account"></i></button>
+                    </div>
+                  </td>
+                  <td *ngIf="role!='administrator' && role!='manager'">
+                    <button type="button" class="btn btn-sm btn-info" data-toggle="modal"><b>You Can't Edit Me :)</b></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <!-- <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+            <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<div bsModal #modalUpload="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-primary" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Upload Account</h4>
+        <button type="button" class="close" (click)="modalUpload.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="file-input">Choose File  : </label>
+          <div class="col-md-9">
+            <input type="file"
+            id="files"
+            accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            (change)="handleFileImportAccount($event.target.files)" #files>
+          </div>
+          <div class="col-md-12">
+            <i><b><a href='http://192.168.1.75/expense/upload/example/COA_Upload_Example.xlsx' target="_blank">file upload template example</a></b></i>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalUpload.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+        <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div bsModal #modalAdd="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Account</h4>
+        <button type="button" class="close" (click)="modalAdd.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Account Type  : </label>
+            <div class="col-md-8">
+              <select #accTypeAdd (change)="setPrefix(accTypeAdd.value);">
+                <option [value]="1" selected>Aktiva</option>
+                <option [value]="2">Kewajiban</option>
+                <option [value]="3">Ekuitas</option>
+                <option [value]="4">Pendapatan</option>
+                <option [value]="5">Pengeluaran</option>
+                <option [value]="6">Biaya Depresiasi dan Amortisasi</option>
+                <option [value]="7">Pengeluaran Lain-Lain</option>
+                <option [value]="8">Pendapatan Lain-Lain</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Account Code  : </label>
+            <div class="col-md-8">
+              <span> {{accPrefix}} - </span>
+              <input #accIdAdd type="text" pattern="[0-9]*" minlength="4" maxlength="4" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Account Desc  : </label>
+            <div class="col-md-8">
+              <input #accDescAdd type="text" minlength="5" maxlength="50">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalAdd.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="saveAcc(1,accPrefix+''+accIdAdd.value,accDescAdd.value,loc)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div bsModal #modalEdit="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Edit Account</h4>
+        <button type="button" class="close" (click)="modalEdit.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Account Code  : </label>
+            <div class="col-md-8">
+              <input #accIdEdit type="text" pattern="[0-9]*" minlength="4" maxlength="5" [value]="editSelected.acc_id" readonly>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Account Desc  : </label>
+            <div class="col-md-8">
+              <input #accDescEdit type="text" minlength="5" maxlength="50" [value]="editSelected.acc_desc">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalEdit.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="saveAcc(editSelected.acc_active,editSelected.acc_id,accDescEdit.value,editSelected.loc_id)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

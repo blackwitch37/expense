@@ -1,0 +1,245 @@
+<div class="animated fadeIn">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <strong>Transaction</strong> Expense
+            <div class="pull-right">
+              <!-- <button type="button" (click)="modalUpload.show()" class="btn btn-sm btn-primary" data-toggle="modal"><i class="fa fa-upload"></i> Upload</button> -->
+              <button type="button" (click)="modalUpload.show()" class="btn btn-sm btn-primary" data-toggle="modal"><i class="fa fa-upload"></i> Upload</button>
+              &nbsp;&nbsp;
+              <button type="button" (click)="modalAdd.show();dateAdd.value=selectedDate;descAdd.value='';typeAdd.value='d';valueAdd.value='';selectedAccount='';" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus-square-o"></i> Add</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div *ngIf="success != null">
+              <div *ngFor="let alert of alertsDismiss">
+                <alert [type]="success===true ? 'info' : 'warning'" [dismissible]="dismissible" [dismissOnTimeout]="alert.timeout" (onClosed)="onClosedSuccess(alert)">
+                  <strong>{{ alert.msg }}</strong>
+                </alert>
+              </div>
+            </div>
+                <div class="form-group row">
+                  <div class="col-md-8">
+                  </div>
+                  <div class="col-md-1">
+                  </div>
+                  <label class="col-form-label" for="file-input">Select Date  : &nbsp;&nbsp;</label>
+                  <input #dateInput id="date-input" type="date" name="date-input" placeholder="date" class="form-control col-md-2 pull-right" [value]="selectedDate" (change)="dateChange(dateInput.value);">
+                </div>
+            <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger" class="row-border hover">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Trx Date</th>
+                  <th>Account Code</th>
+                  <th>Account Name</th>
+                  <th>Trx Desc</th>
+                  <th>Trx Type</th>
+                  <th>Trx Value</th>
+                  <th width="12%">Option</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="expenseList!=null">
+                <tr *ngFor="let exp of expenseList, let i=index">
+                  <td>{{ i+1 }}</td>
+                  <td>{{ exp.trx_date }}</td>
+                  <td>{{ exp.acc_id }}</td>
+                  <td>{{ exp.acc_desc }}</td>
+                  <td>{{ exp.trx_desc | titlecase }}</td>
+                  <td>{{ exp.trx_type=='d' ? 'Debit' : 'Kredit' }}</td>
+                  <td align="right">{{ exp.trx_value}}</td>
+                  <td>
+                    <div class="col-sm-6 pull-left">
+                      <label class="switch switch-label switch-primary" title="Active/Deactive Account">
+                          <input type="checkbox" class="switch-input" [checked]="exp.trx_active==1" (click)="saveAcc($event.target.checked,trx.acc_id,trx.acc_desc,acc.loc_id)" disabled>
+                          <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                      </label>
+                    </div>
+                    <div class="col-sm-6 pull-right">
+                      <button type="button" (click)="editTrx(i)" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-pencil" title="Edit Account"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <!-- <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+            <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div bsModal #modalUpload="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-primary" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Upload Expense</h4>
+        <button type="button" class="close" (click)="modalUpload.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="file-input">Choose File  : </label>
+          <div class="col-md-9">
+            <input type="file"
+            id="files"
+            accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            (change)="handleFileImportAccount($event.target.files)" #files>
+          </div>
+          <div class="col-md-12">
+            <i><b><a href='http://192.168.1.75/expense/upload/example/Expense_Upload_Example.xlsx' target="_blank">file upload template example</a></b></i>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalUpload.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+        <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div bsModal #modalAdd="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Expense</h4>
+        <button type="button" class="close" (click)="modalAdd.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Date  : </label>
+            <div class="col-md-8">
+              <input #dateAdd id="dateAdd" type="date" name="dateAdd" placeholder="date" class="form-control col-md-4" [value]="date">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="account-input">Account Code  : </label>
+            <div class="col-md-8">
+              <ng-select [items]="accountList" 
+                         bindLabel="acc_full"
+                         labelForId="acc_id"
+                         bindValue="acc_id"
+                         [(ngModel)]="selectedAccount">
+              </ng-select>
+              <!-- <input #accIdAdd type="hidden"> -->
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Desc  : </label>
+            <div class="col-md-8">
+              <!-- <textarea [(ngModel)]="descAdd"></textarea> -->
+              <input #descAdd type="text" class="w-100">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Type  : </label>
+            <div class="col-md-8">
+              <select #typeAdd>
+                <option value="d">Debit</option>
+                <option value="c">Kredit</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Value  : </label>
+            <div class="col-md-8">
+              <input #valueAdd type="text" pattern="[0-9]*" minlength="1" maxlength="40" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);this.value=this.value.replace(/[^0-9]/g,'');" class="w-100">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalAdd.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="saveExp(0,dateAdd.value,descAdd.value,typeAdd.value,valueAdd.value,1)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div bsModal #modalEdit="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Edit Expense</h4>
+        <button type="button" class="close" (click)="modalEdit.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Date  : </label>
+            <div class="col-md-8">
+              <input #dateEdit id="dateAdd" type="date" name="dateAdd" placeholder="date" class="form-control col-md-4" [value]="selectedDate">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="account-input">Account Code  : </label>
+            <div class="col-md-8">
+              <ng-select [items]="accountList" 
+                         bindLabel="acc_full"
+                         labelForId="acc_id"
+                         bindValue="acc_id"
+                         [(ngModel)]="selectedAccount">
+              </ng-select>
+              <!-- <input #accIdAdd type="hidden"> -->
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Desc  : </label>
+            <div class="col-md-8">
+              <!-- <textarea [(ngModel)]="descAdd"></textarea> -->
+              <input #descEdit type="text" class="w-100" [value]="editSelected.trx_desc">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Type  : </label>
+            <div class="col-md-8">
+              <select #typeEdit>
+                <option value="d" selected="selectedDebit">Debit</option>
+                <option value="c" selected="selectedCredit">Kredit</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Expense Value  : </label>
+            <div class="col-md-8">
+              <input #valueEdit type="text" [value]="editSelected.trx_value" pattern="[0-9]*" minlength="1" maxlength="40" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);this.value=this.value.replace(/[^0-9]/g,'');" class="w-100">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalEdit.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="saveExp(0,dateEdit.value,descEdit.value,typeEdit.value,valueEdit.value,1)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

@@ -1,0 +1,65 @@
+<div class="animated fadeIn">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <strong>Report</strong> Expense
+              <!-- <button type="button" (click)="modalAdd.show()" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus-square-o"></i> Add</button> -->
+          </div>
+          <div class="card-body">
+            <div *ngIf="success != null">
+              <div *ngFor="let alert of alertsDismiss">
+                <alert [type]="success===true ? 'info' : 'warning'" [dismissible]="dismissible" [dismissOnTimeout]="alert.timeout" (onClosed)="onClosedSuccess(alert)">
+                  <strong>{{ alert.msg }}</strong>
+                </alert>
+              </div>
+            </div>
+            <!-- <date-range-picker #dateRangePicker [fromDate]="getStartDate()" [toDate]="getEndDate()" [options]="firstFieldOptions" [parentFormGroup]="form" [controlName]="'firstDateRange'" (rangeSelected)="onRangeSelected($event)"></date-range-picker> -->
+            <date-range-picker #dateRangePicker [fromDate]="getStartDate()" [toDate]="getEndDate()" [options]="firstFieldOptions" [controlName]="'firstDateRange'" (rangeSelected)="onRangeSelected($event)"></date-range-picker>
+            <label for="selectAccount">Account : &emsp;</label>
+            <ng-select (change)="onAccountSelected(selectedAccount)"
+                       [items]="accountList" 
+                       bindLabel="acc_full"
+                       labelForId="acc_id"
+                       bindValue="acc_id"
+                       [(ngModel)]="selectedAccount">
+            </ng-select>
+            <div class="row">
+              <hr style="border-top: 1px solid red;">
+            </div>
+            <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger" class="row-border hover">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Trx Date</th>
+                  <th>Account Code</th>
+                  <th>Account Name</th>
+                  <th>Trx Desc</th>
+                  <th>Debet</th>
+                  <th>Kredit</th>
+                  <th>Last Balance</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="reportList!=null">
+                <tr *ngFor="let exp of reportList, let i=index">
+                  <td>{{ i+1 }}</td>
+                  <td>{{ exp.trx_date }}</td>
+                  <td>{{ exp.acc_id }}</td>
+                  <td>{{ exp.acc_desc }}</td>
+                  <td>{{ exp.trx_desc | titlecase }}</td>
+                  <td align="right">{{ exp.trx_type=='d' ? exp.trx_value : '-' }}</td>
+                  <td align="right">{{ exp.trx_type=='c' ? exp.trx_value : '-' }}</td>
+                  <td align="right">{{ exp.lastBalance }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <!-- <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+            <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+

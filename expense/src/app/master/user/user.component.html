@@ -1,0 +1,209 @@
+<div class="animated fadeIn">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <strong>Master</strong> User
+            <div class="pull-right" *ngIf="role=='administrator' || role=='manager'">
+              <button type="button" (click)="modalAdd.show()" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus-square-o"></i> Add</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div *ngIf="success != null">
+              <div *ngFor="let alert of alertsDismiss">
+                <alert [type]="success===true ? 'info' : 'warning'" [dismissible]="dismissible" [dismissOnTimeout]="alert.timeout" (onClosed)="onClosedSuccess(alert)">
+                  <strong>{{ alert.msg }}</strong>
+                </alert>
+              </div>
+            </div>
+            <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger" class="row-border hover">
+              <thead>
+                <tr>
+                  <th>User Id</th>
+                  <th>User Name</th>
+                  <th>User Level</th>
+                  <th width="17%">User Location</th>
+                  <!-- <th>Name Code</th> -->
+                  <th width="13%">Option</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="userList!=null">
+                <tr *ngFor="let user of userList, let i=index">
+                  <!-- <td>{{ i }}</td> -->
+                  <td>{{ user.usr_id }}</td>
+                  <td>{{ user.usr_name }}</td>
+                  <td>{{ user.lvl_name | titlecase}}</td>
+                  <td>{{user.loc_name | titlecase}}</td>
+                  <td *ngIf="user.usr_id=='administrator'">
+                    <button type="button" class="btn btn-sm btn-info" data-toggle="modal"><b>You Can't Edit Me :)</b></button>
+                  </td>
+                  <td *ngIf="user.lvl_name == role && user.usr_id != userId">
+                    <button type="button" class="btn btn-sm btn-info" data-toggle="modal"><b>You Can't Edit Me :)</b></button>
+                  </td>
+                  <td *ngIf="user.usr_id!='administrator' && (user.usr_id == userId || user.lvl_name != role)">
+                    <div class="col-sm-6 pull-left">
+                      <label class="switch switch-label switch-primary" title="Active/Deactive Account">
+                          <input type="checkbox" class="switch-input" [checked]="user.usr_active==1" (click)="saveUser($event.target.checked,user.usr_id,user.usr_password,user.usr_name,user.lvl_id,user.loc_id,'switch')">
+                          <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                      </label>
+                    </div>
+                    <div class="col-sm-6 pull-right">
+                      <button type="button" (click)="editUser(i)" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-pencil" title="Edit Account"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <!-- <button type="button" (click)="uploadFileToActivity(files)" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+            <button type="button" (click)="resetFile(files)" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i> Reset</button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div bsModal #modalAdd="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add User</h4>
+        <button type="button" class="close" (click)="modalAdd.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Id  : </label>
+            <div class="col-md-8">
+              <input autocomplete="off" #usrIdAdd type="text" minlength="1" maxlength="50">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Password  : </label>
+            <div class="col-md-8">
+              <input autocomplete="off" #usrPassAdd type="password" minlength="1" maxlength="100">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">Confirm Password  : </label>
+            <div class="col-md-8">
+              <input #usrValidatePassAdd type="password" minlength="1" maxlength="100" (input)="validatePass($event.target.value,usrPassAdd.value);">
+              <div *ngIf="!validator" style="color:red;">Your password didn't match! <i class="fa fa-remove"></i></div>
+              <div *ngIf="validator" style="color:green;">Your password match! <i class="fa fa-check"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Name  : </label>
+            <div class="col-md-8">
+              <input #usrNameAdd type="text" minlength="1" maxlength="100">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Level  : </label>
+            <div class="col-md-8">
+                <select #usrLvlAdd>
+                  <option *ngFor="let lvl of levelList" [value]="lvl.lvl_id">{{lvl.lvl_name | titlecase}}</option>
+                </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Location  : </label>
+            <div class="col-md-8">
+                <select #usrLocAdd>
+                  <option *ngFor="let loc of locationList" [value]="loc.loc_id">{{loc.loc_name | titlecase}}</option>
+                </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalAdd.hide()"><i class="fa fa-remove"></i> Close</button>
+        <button type="button" (click)="saveUser(1,usrIdAdd.value,usrPassAdd.value,usrNameAdd.value,usrLvlAdd.value,usrLocAdd.value,'insert')" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div bsModal #modalEdit="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-success" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Edit User</h4>
+        <button type="button" class="close" (click)="modalEdit.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Id  : </label>
+            <div class="col-md-8">
+              <input #usrIdEdit type="text" minlength="1" maxlength="50" [value]="editSelected.usr_id" readonly>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Name  : </label>
+            <div class="col-md-8">
+              <input #usrNameEdit type="text" minlength="1" maxlength="100" [value]="editSelected.usr_name">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Level  : </label>
+            <div class="col-md-8">
+              <!-- <ng-select
+                        [items]="levelList" 
+                         bindLabel="lvl_name"
+                         labelForId="lvl_id"
+                         bindValue="lvl_id"
+                         [(ngModel)]="editSelected.lvl_id">
+              </ng-select> -->
+                <select #usrLvlEdit>
+                  <option *ngFor="let lvl of levelList" [value]="lvl.lvl_id" [selected]="editSelected.lvl_id==lvl.lvl_id">{{lvl.lvl_name | titlecase}}</option>
+                </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label" for="file-input">User Location  : </label>
+            <div class="col-md-8">
+              <!-- <ng-select
+                        [items]="locationList" 
+                         bindLabel="loc_name"
+                         labelForId="loc_id"
+                         bindValue="loc_id"
+                         [(ngModel)]="editSelected.loc_id">
+              </ng-select> -->
+                <select #usrLocEdit>
+                  <option *ngFor="let loc of locationList" [value]="loc.loc_id" [selected]="editSelected.loc_id==loc.loc_id">{{loc.loc_name | titlecase}}</option>
+                </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="modalEdit.hide()"><i class="fa fa-remove"></i> Close</button>
+        <!-- <button type="button" (click)="saveUser(editSelected.usr_active,editSelected.usr_id,editSelected.usr_password,usrNameEdit.value,editSelected.lvl_id,editSelected.loc_id,'update')" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button> -->
+        <button type="button" (click)="saveUser(editSelected.usr_active,editSelected.usr_id,editSelected.usr_password,usrNameEdit.value,usrLvlEdit.value,usrLocEdit.value,'update')" class="btn btn-sm btn-primary"><i class="fa fa-dot-circle-o"></i> Submit</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
